@@ -70,9 +70,8 @@ setClass(Class="crp.CSFP",                                                      
               changes.crp.CSFP.rc.vares="logical",
               changes.crp.CSFP.rc.sd="logical",
               changes.crp.export="logical",
-              memory.max="numeric",
-              STOP="logical",
-              file.format="character"),
+              file.format="character",
+              input="list"),
 	   prototype=prototype( PATH.IN="C:\\",                                                            #define default values
 					PATH.OUT="C:\\",
 					PORT.NAME="portfolio.csv",
@@ -82,7 +81,7 @@ setClass(Class="crp.CSFP",                                                      
 					LOSS.UNIT=1e6,
 					NITER.MAX=0.9999,
           NITER.MAX.GLOBAL=1e5,                
-					ALPHA=c(0.9995),
+					ALPHA=c(0.999),
 					PLOT.PDF=TRUE,
 					CALC.RISK.CONT=FALSE,
 					rating=0,
@@ -143,13 +142,12 @@ setClass(Class="crp.CSFP",                                                      
           changes.crp.CSFP.rc.vares=FALSE,
           changes.crp.CSFP.rc.sd=FALSE,
           changes.crp.export=FALSE,
-          memory.max=1024,
-          STOP=FALSE,
-          file.format="csv")
+          file.format="csv",
+          input=list())
 )
 
 setGeneric("crp.read",function(this) standardGeneric("crp.read"))
-setMethod(f = "crp.read",signature=c("crp.CSFP"),definition=function(this){
+setMethod("crp.read",c("crp.CSFP"),function(this) {
 #
 #       <crp.read>      Import portfolio and risk data
 #
@@ -163,11 +161,19 @@ setMethod(f = "crp.read",signature=c("crp.CSFP"),definition=function(this){
 # ---------------------------------------------------------------------------------------
   
   cat("Importing risk information (Rating, PD, SD)....\n")
-  if(file.exists(paste(this@PATH.IN,this@RISK.NAME,sep=""))==TRUE){                                  # check if the file exists
+  if(nrow(this@input$risk.matrix)>0)
+    RISK.MATRIX=this@input$risk.matrix
+  else if(file.exists(paste(this@PATH.IN,this@RISK.NAME,sep=""))==TRUE){                                  # check if the file exists
     if(this@file.format=="csv")
       RISK.MATRIX=read.csv(paste(this@PATH.IN,this@RISK.NAME,sep=""),header=TRUE)
     else if(this@file.format=="csv2")
       RISK.MATRIX=read.csv2(paste(this@PATH.IN,this@RISK.NAME,sep=""),header=TRUE)
+  }
+  else{
+    cat(paste("ERROR: The ",this@RISK.NAME," file is missing!!!\n",sep=""))
+    ERROR=ERROR+1
+  }
+  if(ERROR==0){
     if(is.null(RISK.MATRIX$RATING)){
       cat("The RATING-column in ",this@RISK.NAME," is missing.")
       ERROR=ERROR+1
@@ -189,17 +195,16 @@ setMethod(f = "crp.read",signature=c("crp.CSFP"),definition=function(this){
         this@rating.SD=RISK.MATRIX$SD
     }
     remove(RISK.MATRIX)
+    this@input$risk.matrix=data.frame()
+    
+    i=which(this@rating==0)
+    if(length(i)>0){
+      this@rating=this@rating[-i]
+      this@rating.PD=this@rating.PD[-i]
+      this@rating.SD=this@rating.SD[-i]
+    }
   }
-  else{
-	  cat(paste("ERROR: The ",this@RISK.NAME," file is missing!!!\n",sep=""))
-    ERROR=ERROR+1
-  }
-  i=which(this@rating==0)
-  if(length(i)>0){
-    this@rating=this@rating[-i]
-    this@rating.PD=this@rating.PD[-i]
-    this@rating.SD=this@rating.SD[-i]
-  }
+    
    
 
 
@@ -208,11 +213,19 @@ setMethod(f = "crp.read",signature=c("crp.CSFP"),definition=function(this){
 # ---------------------------------------------------------------------------------------
 
   cat("Importing portfolio data....\n")
-  if(file.exists(paste(this@PATH.IN,this@PORT.NAME,sep=""))==TRUE){                                  # check if file exists
+  if(nrow(this@input$portfolio)>0)
+    PORTFOLIO=this@input$portfolio
+  else if(file.exists(paste(this@PATH.IN,this@PORT.NAME,sep=""))==TRUE){                                  # check if file exists
     if(this@file.format=="csv")
    	  PORTFOLIO=read.csv(paste(this@PATH.IN,this@PORT.NAME,sep=""),header=TRUE)
     else if(this@file.format=="csv2")
       PORTFOLIO=read.csv2(paste(this@PATH.IN,this@PORT.NAME,sep=""),header=TRUE)
+  }
+  else{
+   cat(paste("ERROR: The ",this@PORT.NAME," file is missing!!!\n"),sep="")
+   ERROR=ERROR+1
+  }
+  if(ERROR==0){
     this@NS=length(PORTFOLIO)-6                                                                      # assigne data to attributes
 
     if(is.null(PORTFOLIO$CPnumber)){
@@ -247,42 +260,37 @@ setMethod(f = "crp.read",signature=c("crp.CSFP"),definition=function(this){
       ERROR=ERROR+1
     }
     else{
-      remove(PORTFOLIO)                                                                                
+      remove(PORTFOLIO)
+      this@input$portfolio=data.frame()
       if(this@NS==1)
         TEMP=matrix(ncol=1,TEMP)                                                                       # convert to matrix
       this@W=cbind(1-apply(TEMP,1,sum),TEMP)                                                           # attache idiosyncratic weights as first column
       remove(TEMP)
+    }   
+    emptyCP=0
+    l=0
+    for(i in 1:this@NC){
+      if(this@CP.RATING[i]==0){
+        l=l+1
+        emptyCP[l]=i
+      }
+      else if(this@NEX[i]==0 || this@rating.PD[this@CP.RATING[i]]==0 || this@LGD[i]==0){
+        l=l+1
+        emptyCP[l]=i
+      }
     }
-   }
-   else{
-	 cat(paste("ERROR: The ",this@PORT.NAME," file is missing!!!\n"),sep="")
-      ERROR=ERROR+1
-   }
-   
-   
-   emptyCP=0
-   l=0
-   for(i in 1:this@NC){
-     if(this@CP.RATING[i]==0){
-       l=l+1
-       emptyCP[l]=i
-     }
-     else if(this@NEX[i]==0 || this@rating.PD[this@CP.RATING[i]]==0 || this@LGD[i]==0){
-       l=l+1
-       emptyCP[l]=i
-     }
-   }
-   if(l>0){
-     this@CP.NR=this@CP.NR[-emptyCP]
-     this@CP.RATING=this@CP.RATING[-emptyCP]
-     this@NEX=this@NEX[-emptyCP]
-     this@LGD=this@LGD[-emptyCP]
-     this@W=this@W[-emptyCP,]
-     this@NC=this@NC-l
-   }
-   
-   cat(this@NS,"sectors ...")
-   cat(this@NC,"counterparties (",l," removed) ... OK\n",sep="")
+    if(l>0){
+      this@CP.NR=this@CP.NR[-emptyCP]
+      this@CP.RATING=this@CP.RATING[-emptyCP]
+      this@NEX=this@NEX[-emptyCP]
+      this@LGD=this@LGD[-emptyCP]
+      this@W=this@W[-emptyCP,]
+      this@NC=this@NC-l
+    }
+     
+    cat(this@NS,"sectors ...")
+    cat(this@NC,"counterparties (",l," removed) ... OK\n",sep="")
+  }
    
    
 # --------------------------------------------------------------------------------------
@@ -290,30 +298,34 @@ setMethod(f = "crp.read",signature=c("crp.CSFP"),definition=function(this){
 # ---------------------------------------------------------------------------------------
 
    if(this@SEC.VAR.EST==5){                                                                          # sector variances are just needed if SEC.VAR.EST=5, otherwise they are calculated out of rating.SD
-   	cat("Importing PD sector variances....\n")   
-      if(file.exists(paste(this@PATH.IN,this@PDVAR.NAME,sep=""))==TRUE){                             # check if file exists
+   	 cat("Importing PD sector variances....\n")   
+     if(nrow(this@input$sec.var)>0)
+       SEC.VAR=this@input$sec.var
+     else if(file.exists(paste(this@PATH.IN,this@PDVAR.NAME,sep=""))==TRUE){                             # check if file exists
         if(this@file.format=="csv")
    		    SEC.VAR=read.csv(paste(this@PATH.IN,this@PDVAR.NAME,sep=""),header=TRUE)
         else if(this@file.format=="csv2")
           SEC.VAR=read.csv2(paste(this@PATH.IN,this@PDVAR.NAME,sep=""),header=TRUE)
-        if(is.null(SEC.VAR$Var)){
-          cat("The Var-column in ",this@PDVAR.NAME," is missing.\n")
+     }
+   	 else{
+   	   cat(paste("ERROR: The ",this@PDVAR.NAME," file is missing!!!\n",sep=""))
+   	   ERROR=ERROR+1
+   	 }
+    if(ERROR==0){
+      if(is.null(SEC.VAR$Var)){
+        cat("The Var-column in ",this@PDVAR.NAME," is missing.\n")
         ERROR=ERROR+1
-        }
-        else if(length(SEC.VAR$Var)<this@NS){
-          cat("ERROR: Number of sector variances specified in ",this@PDVAR.NAME," (",length(SEC.VAR$Var),") is smaller then the number of sectors (",this@NS,").\n",sep="")
-          ERROR=ERROR+1
-        }
-        else{
-   		    this@SEC.VAR=SEC.VAR$Var
-   		    remove(SEC.VAR)
-        }
-   		}
-   	  else{
-		    cat(paste("ERROR: The ",this@PDVAR.NAME," file is missing!!!\n",sep=""))
+      }
+      else if(length(SEC.VAR$Var)<this@NS){
+        cat("ERROR: Number of sector variances specified in ",this@PDVAR.NAME," (",length(SEC.VAR$Var),") is smaller then the number of sectors (",this@NS,").\n",sep="")
         ERROR=ERROR+1
-   	  }
-               
+      }
+      else{
+   		  this@SEC.VAR=SEC.VAR$Var
+   		  remove(SEC.VAR)
+        this@input$sec.var=data.frame()
+      }
+    }
    }
    if(this@SEC.VAR.EST<5)
 	   this@SEC.VAR=0
@@ -452,7 +464,6 @@ setMethod(f="crp.calc.portfolio.statistics",signature=c("crp.CSFP"),definition=f
   cat("Portfolio expected loss:",fo(this@EL),"\n")
   cat("Portfolio standad deviation:",fo(this@SD),"\n")
   cat("Max. exposure band per CP: ",max(this@NU),"\n",sep="")
-  cat("Expected loss difference:",fo(sum(as.numeric(this@PL*this@PD))-this@EL),"\n")
   cat("Discretization completed...\n")
 
   if(this@save.memory){                                                                              # PD0 and PL0 are not needed anymore
@@ -500,12 +511,6 @@ setMethod(f="crp.CSFP.loss",signature=c("crp.CSFP"),definition=function(this){
 	} 
   cat("Loss unit: ",fo(this@LOSS.UNIT),"\n",sep="")  
    
-  memory.estimation2=8*this@M*2*(this@NS+3)/2^20
-  if(object.size(this)/2^20+memory.estimation2 > this@memory.max || memory.size()+memory.estimation2 > 0.9*memory.limit()){
-    cat("WARNING: Memory allocation for calculating the loss distribution is likely to fail due to memory.max of the model or memory.limit() of the R session. \n The current calculation was stopped.\n ")
-    this@STOP=TRUE
-    return(this)
-  }
       
   A=matrix(0,ncol=(this@M+1),nrow=this@NS)                                                           # Make all needed variables local to this 
   B=A                                                                                                # function instead of going up the environment 
@@ -619,7 +624,6 @@ setMethod(f="crp.CSFP.loss",signature=c("crp.CSFP"),definition=function(this){
   }
 
   this@changes.crp.CSFP.loss=FALSE
-  this@STOP=FALSE
   gc()
   return(this)        
 }
@@ -655,6 +659,7 @@ setMethod(f="crp.measure",signature=c("crp.CSFP"),definition=function(this){
         
   this@EL.crp=sum(as.numeric(this@LOSS*this@PDF))                                                    # crp. expected loss
   cat("CR+ portfolio expected loss:",fo(this@EL.crp),"\n")
+  cat("Expected loss difference:",fo(this@EL.crp-this@EL),"\n")
   cat("CR+ Exceedance Probability of the expected loss:",1-this@CDF[floor(this@EL/this@LOSS.UNIT)],"\n")
 
   this@SD.crp=sqrt(sum(as.numeric(this@PDF*(this@LOSS-this@EL.crp)^2)))                              # crp. standard deviation
@@ -747,9 +752,7 @@ setMethod(f="crp.plot",signature=c("crp.CSFP"),definition=function(this){
   PLOT.TITLE.YLAB="Probability"
   PLOT.TITLE=this@NAME
   title=("CSFP-model")
-	  
-  windows()
-	  
+	  	  
   if(all((this@PLOT.RANGE.X==c(0,0) & this@PLOT.RANGE.Y==c(0,0))==TRUE))                             # distinguish if x-/y ranges are given or choosen by R automatically
     plot(this@LOSS/this@PLOT.SCALE,this@PDF,type="l",main=paste("Portfolio Credit Loss (",PLOT.TITLE,")\n",title,sep=""),xlab=PLOT.TITLE.XLAB,ylab=PLOT.TITLE.YLAB,cex.axis=1.3,cex.main=1.3,lwd=3,cex.lab=1.3)
 	else if(any((this@PLOT.RANGE.X!=c(0,0))==TRUE))
@@ -778,9 +781,7 @@ setMethod(f="crp.plot",signature=c("crp.CSFP"),definition=function(this){
   
   abline(v=c(this@EL.crp,this@VaR,this@ES)/this@PLOT.SCALE,col=c("green",rep("blue",nVaR),rep("red",nES)))   # add lines for EL, VaR and ES
   legend("topright",c("EL.crp","VaR","ES"),col=c("green","blue","red"),lwd=1)                        # add legend
-  dir.create(paste(this@PATH.OUT,this@NAME,"\\",sep=""),showWarnings=FALSE)                          # create directory with model name inside of 
-  savePlot(paste(this@PATH.OUT,this@NAME,"\\LOSSDIST.jpg",sep=""),type="jpg")                        # PATH.OUT and save plot
-    
+  
   if(this@save.memory){                                                                              # dont store LOSS and CDF permanently in
     this@LOSS=0                                                                                      # save.memory mode
     this@CDF=0
@@ -828,12 +829,6 @@ setMethod(f="crp.CSFP.rc.vares",signature=c("crp.CSFP"),definition=function(this
 	  ALPHA=this@ALPHA[l]                                                                              # calculate RC just for last ALPHA
   cat("Calculating VaR and ES contributions....\n")
          
-  memory.estimation2=8*(4*this@NC+(this@NS+1)*(2*this@M+this@SELV[length(this@SELV)]))/2^20
-  if(object.size(this)/2^20+memory.estimation2 > this@memory.max || memory.size()+memory.estimation2 > 0.9*memory.limit()){
-    cat("WARNING: Memory allocation for calculating VaR and ES contributions is likely to fail due to memory.max of the model or memory.limit() of the R session. \n The current calculation was stopped.\n ")
-    this@STOP=TRUE
-    return(this)
-  }
   
   Z=length(this@PDF)                                                                                 # initialization
   VaR.K=numeric(this@NC)
@@ -928,7 +923,6 @@ setMethod(f="crp.CSFP.rc.vares",signature=c("crp.CSFP"),definition=function(this
   this@rc.OK=TRUE
 	cat("Done....\n")
   this@changes.crp.CSFP.rc.vares=FALSE
-  this@STOP=FALSE
   gc()
 	return(this)
 }
@@ -956,12 +950,6 @@ setMethod(f="crp.CSFP.rc.sd",signature="crp.CSFP",definition=function(this){
   
   cat("Calculating SD contributions....\n")
 
-  memory.estimation2=8*this@NC/2^20
-  if(object.size(this)/2^20+memory.estimation2 > this@memory.max || memory.size()+memory.estimation2 > 0.9*memory.limit()){
-    cat("WARNING: Memory allocation for calculating SD contributions is likely to fail due to memory.max of the model or memory.limit() of the R session. \n The current calculation was stopped.\n ")
-    this@STOP=TRUE
-    return(this)
-  }
       
   NC=this@NC                                                                                         # Make all needed variables local to this
   NS=this@NS                                                                                         # function instead of going up the environment
@@ -994,7 +982,6 @@ setMethod(f="crp.CSFP.rc.sd",signature="crp.CSFP",definition=function(this){
     
   cat("Done....\n")
   this@changes.crp.CSFP.rc.sd=FALSE
-  this@STOP=FALSE
   gc()
   return(this)
 }
@@ -1089,23 +1076,19 @@ setMethod(f="crp.CSFP",signature=c("crp.CSFP"),definition=function(this){
     return(this)
   this=crp.calc.portfolio.statistics(this)
   this=crp.CSFP.loss(this)
-  if(!this@STOP){                                                                                    # check if memory allocation failed
-    this=crp.measure(this)
-    if(this@PLOT.PDF)
-      this=crp.plot(this)
-    else
-      cat("You dont want to plot the PDF, otherwise set attribute PLOT.PDF=TRUE (default case)!\n")
-    if(this@CALC.RISK.CONT){
-      this=crp.CSFP.rc.vares(this)
-      if(!this@STOP){
-        this=crp.CSFP.rc.sd(this)
-        if(this@rc.OK && !this@STOP)
-          this=crp.export(this)
-      }
-    }
-      else
-        cat("You dont want to calculate the Risk Contributions otherwise set attribute CALC.RISK.CONT=TRUE!\n")
+  this=crp.measure(this)
+  if(this@PLOT.PDF)
+    this=crp.plot(this)
+  else
+    cat("You dont want to plot the PDF, otherwise set attribute PLOT.PDF=TRUE (default case)!\n")
+  if(this@CALC.RISK.CONT){
+    this=crp.CSFP.rc.vares(this)
+    this=crp.CSFP.rc.sd(this)
+    if(this@rc.OK)
+      this=crp.export(this)
   }
+  else
+    cat("You dont want to calculate the Risk Contributions otherwise set attribute CALC.RISK.CONT=TRUE!\n")
   this@save.memory=org.save.memory                                                                   # restore original save.memory state
     
   if(this@save.memory && !this@CALC.RISK.CONT){
@@ -1275,7 +1258,6 @@ setMethod(f="crp.set.changes",signature=c("character","crp.CSFP"),definition=fun
     if(!(length(this@SD.CONT)==1 && this@SD.CONT[1]==0) || !(length(this@VaR.CONT)==1 && this@VaR.CONT[1]==0))
       this@changes.crp.export=TRUE
   }
-  this@STOP=FALSE
   return(this)
 })
   

@@ -70,7 +70,8 @@ setClass(Class="crp.CSFP",                                                      
               changes.crp.CSFP.rc.vares="logical",
               changes.crp.CSFP.rc.sd="logical",
               changes.crp.export="logical",
-              file.format="character"),
+              file.format="character",
+              input="list"),
 	   prototype=prototype( PATH.IN="C:\\",                                                            #define default values
 					PATH.OUT="C:\\",
 					PORT.NAME="portfolio.csv",
@@ -80,7 +81,7 @@ setClass(Class="crp.CSFP",                                                      
 					LOSS.UNIT=1e6,
 					NITER.MAX=0.9999,
           NITER.MAX.GLOBAL=1e5,                
-					ALPHA=c(0.9995),
+					ALPHA=c(0.999),
 					PLOT.PDF=TRUE,
 					CALC.RISK.CONT=FALSE,
 					rating=0,
@@ -141,7 +142,8 @@ setClass(Class="crp.CSFP",                                                      
           changes.crp.CSFP.rc.vares=FALSE,
           changes.crp.CSFP.rc.sd=FALSE,
           changes.crp.export=FALSE,
-          file.format="csv")
+          file.format="csv",
+          input=list())
 )
 
 setGeneric("crp.read",function(this) standardGeneric("crp.read"))
@@ -159,11 +161,19 @@ setMethod("crp.read",c("crp.CSFP"),function(this) {
 # ---------------------------------------------------------------------------------------
   
   cat("Importing risk information (Rating, PD, SD)....\n")
-  if(file.exists(paste(this@PATH.IN,this@RISK.NAME,sep=""))==TRUE){                                  # check if the file exists
+  if(nrow(this@input$risk.matrix)>0)
+    RISK.MATRIX=this@input$risk.matrix
+  else if(file.exists(paste(this@PATH.IN,this@RISK.NAME,sep=""))==TRUE){                                  # check if the file exists
     if(this@file.format=="csv")
       RISK.MATRIX=read.csv(paste(this@PATH.IN,this@RISK.NAME,sep=""),header=TRUE)
     else if(this@file.format=="csv2")
       RISK.MATRIX=read.csv2(paste(this@PATH.IN,this@RISK.NAME,sep=""),header=TRUE)
+  }
+  else{
+    cat(paste("ERROR: The ",this@RISK.NAME," file is missing!!!\n",sep=""))
+    ERROR=ERROR+1
+  }
+  if(ERROR==0){
     if(is.null(RISK.MATRIX$RATING)){
       cat("The RATING-column in ",this@RISK.NAME," is missing.")
       ERROR=ERROR+1
@@ -185,17 +195,16 @@ setMethod("crp.read",c("crp.CSFP"),function(this) {
         this@rating.SD=RISK.MATRIX$SD
     }
     remove(RISK.MATRIX)
+    this@input$risk.matrix=data.frame()
+    
+    i=which(this@rating==0)
+    if(length(i)>0){
+      this@rating=this@rating[-i]
+      this@rating.PD=this@rating.PD[-i]
+      this@rating.SD=this@rating.SD[-i]
+    }
   }
-  else{
-	  cat(paste("ERROR: The ",this@RISK.NAME," file is missing!!!\n",sep=""))
-    ERROR=ERROR+1
-  }
-  i=which(this@rating==0)
-  if(length(i)>0){
-    this@rating=this@rating[-i]
-    this@rating.PD=this@rating.PD[-i]
-    this@rating.SD=this@rating.SD[-i]
-  }
+    
    
 
 
@@ -204,11 +213,19 @@ setMethod("crp.read",c("crp.CSFP"),function(this) {
 # ---------------------------------------------------------------------------------------
 
   cat("Importing portfolio data....\n")
-  if(file.exists(paste(this@PATH.IN,this@PORT.NAME,sep=""))==TRUE){                                  # check if file exists
+  if(nrow(this@input$portfolio)>0)
+    PORTFOLIO=this@input$portfolio
+  else if(file.exists(paste(this@PATH.IN,this@PORT.NAME,sep=""))==TRUE){                                  # check if file exists
     if(this@file.format=="csv")
    	  PORTFOLIO=read.csv(paste(this@PATH.IN,this@PORT.NAME,sep=""),header=TRUE)
     else if(this@file.format=="csv2")
       PORTFOLIO=read.csv2(paste(this@PATH.IN,this@PORT.NAME,sep=""),header=TRUE)
+  }
+  else{
+   cat(paste("ERROR: The ",this@PORT.NAME," file is missing!!!\n"),sep="")
+   ERROR=ERROR+1
+  }
+  if(ERROR==0){
     this@NS=length(PORTFOLIO)-6                                                                      # assigne data to attributes
 
     if(is.null(PORTFOLIO$CPnumber)){
@@ -243,42 +260,37 @@ setMethod("crp.read",c("crp.CSFP"),function(this) {
       ERROR=ERROR+1
     }
     else{
-      remove(PORTFOLIO)                                                                                
+      remove(PORTFOLIO)
+      this@input$portfolio=data.frame()
       if(this@NS==1)
         TEMP=matrix(ncol=1,TEMP)                                                                       # convert to matrix
       this@W=cbind(1-apply(TEMP,1,sum),TEMP)                                                           # attache idiosyncratic weights as first column
       remove(TEMP)
+    }   
+    emptyCP=0
+    l=0
+    for(i in 1:this@NC){
+      if(this@CP.RATING[i]==0){
+        l=l+1
+        emptyCP[l]=i
+      }
+      else if(this@NEX[i]==0 || this@rating.PD[this@CP.RATING[i]]==0 || this@LGD[i]==0){
+        l=l+1
+        emptyCP[l]=i
+      }
     }
-   }
-   else{
-	 cat(paste("ERROR: The ",this@PORT.NAME," file is missing!!!\n"),sep="")
-      ERROR=ERROR+1
-   }
-   
-   
-   emptyCP=0
-   l=0
-   for(i in 1:this@NC){
-     if(this@CP.RATING[i]==0){
-       l=l+1
-       emptyCP[l]=i
-     }
-     else if(this@NEX[i]==0 || this@rating.PD[this@CP.RATING[i]]==0 || this@LGD[i]==0){
-       l=l+1
-       emptyCP[l]=i
-     }
-   }
-   if(l>0){
-     this@CP.NR=this@CP.NR[-emptyCP]
-     this@CP.RATING=this@CP.RATING[-emptyCP]
-     this@NEX=this@NEX[-emptyCP]
-     this@LGD=this@LGD[-emptyCP]
-     this@W=this@W[-emptyCP,]
-     this@NC=this@NC-l
-   }
-   
-   cat(this@NS,"sectors ...")
-   cat(this@NC,"counterparties (",l," removed) ... OK\n",sep="")
+    if(l>0){
+      this@CP.NR=this@CP.NR[-emptyCP]
+      this@CP.RATING=this@CP.RATING[-emptyCP]
+      this@NEX=this@NEX[-emptyCP]
+      this@LGD=this@LGD[-emptyCP]
+      this@W=this@W[-emptyCP,]
+      this@NC=this@NC-l
+    }
+     
+    cat(this@NS,"sectors ...")
+    cat(this@NC,"counterparties (",l," removed) ... OK\n",sep="")
+  }
    
    
 # --------------------------------------------------------------------------------------
@@ -286,30 +298,34 @@ setMethod("crp.read",c("crp.CSFP"),function(this) {
 # ---------------------------------------------------------------------------------------
 
    if(this@SEC.VAR.EST==5){                                                                          # sector variances are just needed if SEC.VAR.EST=5, otherwise they are calculated out of rating.SD
-   	cat("Importing PD sector variances....\n")   
-      if(file.exists(paste(this@PATH.IN,this@PDVAR.NAME,sep=""))==TRUE){                             # check if file exists
+   	 cat("Importing PD sector variances....\n")   
+     if(nrow(this@input$sec.var)>0)
+       SEC.VAR=this@input$sec.var
+     else if(file.exists(paste(this@PATH.IN,this@PDVAR.NAME,sep=""))==TRUE){                             # check if file exists
         if(this@file.format=="csv")
    		    SEC.VAR=read.csv(paste(this@PATH.IN,this@PDVAR.NAME,sep=""),header=TRUE)
         else if(this@file.format=="csv2")
           SEC.VAR=read.csv2(paste(this@PATH.IN,this@PDVAR.NAME,sep=""),header=TRUE)
-        if(is.null(SEC.VAR$Var)){
-          cat("The Var-column in ",this@PDVAR.NAME," is missing.\n")
+     }
+   	 else{
+   	   cat(paste("ERROR: The ",this@PDVAR.NAME," file is missing!!!\n",sep=""))
+   	   ERROR=ERROR+1
+   	 }
+    if(ERROR==0){
+      if(is.null(SEC.VAR$Var)){
+        cat("The Var-column in ",this@PDVAR.NAME," is missing.\n")
         ERROR=ERROR+1
-        }
-        else if(length(SEC.VAR$Var)<this@NS){
-          cat("ERROR: Number of sector variances specified in ",this@PDVAR.NAME," (",length(SEC.VAR$Var),") is smaller then the number of sectors (",this@NS,").\n",sep="")
-          ERROR=ERROR+1
-        }
-        else{
-   		    this@SEC.VAR=SEC.VAR$Var
-   		    remove(SEC.VAR)
-        }
-   		}
-   	  else{
-		    cat(paste("ERROR: The ",this@PDVAR.NAME," file is missing!!!\n",sep=""))
+      }
+      else if(length(SEC.VAR$Var)<this@NS){
+        cat("ERROR: Number of sector variances specified in ",this@PDVAR.NAME," (",length(SEC.VAR$Var),") is smaller then the number of sectors (",this@NS,").\n",sep="")
         ERROR=ERROR+1
-   	  }
-               
+      }
+      else{
+   		  this@SEC.VAR=SEC.VAR$Var
+   		  remove(SEC.VAR)
+        this@input$sec.var=data.frame()
+      }
+    }
    }
    if(this@SEC.VAR.EST<5)
 	   this@SEC.VAR=0

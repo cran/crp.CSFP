@@ -1,8 +1,8 @@
 Package: crp.CSFP
 Type: Package
 Title: CreditRisk+ portfolio model
-Version: 1.0
-Date: 2012-02-12
+Version: 1.1
+Date: 2012-03-19
 Author: Dr. Matthias Fischer, Kevin Jakob & Stefan Kolb
 Maintainer: Dr. Matthias Fischer
         <Matthias.Fischer@wiso.uni-erlangen.de>
@@ -13,6 +13,6 @@ Description: Modelling credit risks based on the concept of
 License: GPL-2
 LazyLoad: yes
 Depends: methods
-Packaged: 2012-02-20 18:06:53 UTC; Kevin_Jakob
+Packaged: 2012-04-02 14:00:04 UTC; Kevin_Jakob
 Repository: CRAN
-Date/Publication: 2012-02-20 20:06:20
+Date/Publication: 2012-04-03 21:02:02

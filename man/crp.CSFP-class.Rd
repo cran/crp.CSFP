@@ -96,6 +96,7 @@ with: \code{MU.(k)=sum(W[,k+1]*PD)}
     \item{\code{changes.crp.CSFP.rc.sd}:}{is an internal flag indicating changes on input parameters (by call to \code{set.<slot>}) affecting \code{crp.CSFP.rc.vares}.}
     \item{\code{changes.crp.export}:}{is an internal flag indicating changes on input parameters (by call to \code{set.<slot>}) affecting \code{crp.export}.}
     \item{\code{file.format}:}{is a character string defining the format of the input files. You can choose between 'csv', which means that the separation character is ',' and the decimal character is '.' and 'csv2', which means that the separation character is ';' and the decimal character is ','.}
+    \item{\code{input}:}{is a temporary list, used if inupt data (portfolio, risk.matrix, sec.var) are passed directly to \code{crp.init}.}
 }
 }
 \section{Methods}{
@@ -114,8 +115,8 @@ with: \code{MU.(k)=sum(W[,k+1]*PD)}
     \item{crp.set.changes}{Internal method for model integrity}
     \item{crp.summary}{Summarize portfolio key numbers}
     \item{crp.write.summary}{Writing summary to file}
-    \item{get.<slot>}{You can enter every slot via \code{get.<slot>} e.g. \code{get.VaR(MyCalibration)}}
-    \item{set.<slot> <-}{You can change the value of a slot iff this is an input parameter via \code{get.<slot>} e.g. \code{set.ALPHA(MyCalibration)<-c(0.999,0.9995)}. You can do so with all slots that are available in \code{crp.init}. }
+    \item{get.<slot>}{You can enter every slot via \code{get.<slot>} e.g. \code{get.VaR(MyModel)}}
+    \item{set.<slot> <-}{You can change the value of a slot iff this is an input parameter via \code{get.<slot>} e.g. \code{set.ALPHA(MyModel)<-c(0.999,0.9995)}. You can do so with all slots that are available in \code{crp.init}. }
 	 }
 }
 \references{
@@ -131,6 +132,16 @@ Dr. Matthias Fischer, Kevin Jakob & Stefan Kolb
 }
 \examples{
 MyModel=crp.init(PATH.IN=paste(system.file(package="crp.CSFP"),"/data/",sep=""),LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE)
+
+# or pass portfolio directly and use random sector variances
+Path=paste(system.file(package="crp.CSFP"),"/data/",sep="")
+portfolio=read.csv(paste(Path,"portfolio.csv",sep=""))
+risk.matrix=read.csv(paste(Path,"rating_pd.csv",sep=""))
+sec.var=data.frame(Var=runif(3,0,2))
+
+MyModel=crp.init(portfolio=portfolio,risk.matrix=risk.matrix,sec.var=sec.var,LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE,PATH.OUT=Path)
+
+# execute portfolio calculation
 MyModel=crp.CSFP(MyModel)
 }
 \keyword{classes}

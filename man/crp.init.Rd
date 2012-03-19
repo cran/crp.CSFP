@@ -5,17 +5,26 @@
 This function helps to create a new entity of a crp.CSFP object. The arguments, given to the functions become the attributes of the new model.
 }
 \usage{
-crp.init(PATH.IN, PATH.OUT, PORT.NAME = "portfolio.csv", RISK.NAME = "rating_pd.csv", PDVAR.NAME = "pd_sector_var.csv", SEC.VAR.EST = 5, LOSS.UNIT = 1e+06, NITER.MAX = 0.9999, NITER.MAX.GLOBAL = 1e+05, ALPHA = c(0.9995), PLOT.PDF = TRUE, CALC.RISK.CONT = FALSE, PLOT.SCALE = 1e+06, PLOT.RANGE.X = c(0, 0), PLOT.RANGE.Y = c(0, 0), save.memory = FALSE, file.format = "csv")
+crp.init(PATH.IN, PATH.OUT, PORT.NAME = "portfolio.csv", RISK.NAME = "rating_pd.csv", PDVAR.NAME = "pd_sector_var.csv", SEC.VAR.EST = 5, LOSS.UNIT = 1e+06, NITER.MAX = 0.9999, NITER.MAX.GLOBAL = 1e+05, ALPHA = c(0.999), PLOT.PDF = TRUE, CALC.RISK.CONT = FALSE, PLOT.SCALE = 1e+06, PLOT.RANGE.X = c(0, 0), PLOT.RANGE.Y = c(0, 0), save.memory = FALSE, file.format = "csv", portfolio=data.frame(), risk.matrix=data.frame(), sec.var=data.frame())
 }
 \arguments{
   \item{PATH.IN}{
 is a character string with the path to the directory, where are the input files. All input files have to be in this directory. It must end with ".\\\\".
-If no \code{PATH.IN} is passed to the function, a window comes up to choose the directory manually.
+In alternative the files can be passed as dataframes to \code{crp.init}, please have a look at \code{portfolio}, \code{risk.matrix} or \code{sec.var}.
 }
   \item{PATH.OUT}{
 is a character string with the path to the directory, where the output should be written to, ending with ".\\\\".  The default for \code{PATH.OUT} is \code{PATH.IN}.
 Be aware, that actually, by writing any output, the model will create a subdirectory in \code{PATH.OUT} with its name. So you can use your \code{PATH.IN} as \code{PATH.OUT} (which is the default case), create different models from the same input data (or from different files, lying in the same directory), without worrying about the output path or overwriting other results.
 }
+\item{portfolio}{
+ is a dataframe containing the portfolio information. The structure has to be the same as described in \code{PORT.NAME} for the .csv files. If not provided, the file is read from \code{PATH.IN}.
+ }
+ \item{risk.matrix}{
+ is a dataframe containing the rating masterscale. The structure has to be the same as described in \code{RISK.NAME} for the .csv files. If not provided, the file is read from \code{PATH.IN}.
+ }
+ \item{sec.var}{
+ is a dataframe containing the sector variances. The structure has to be the same as described in \code{PDVAR.NAME} for the .csv files. If not provided, the file is read from \code{PATH.IN}.
+ }
   \item{PORT.NAME}{
 is a character string with the name of the portfolio file, ending with ".csv". The file must contain the following columns: CPnumber, CPname, exposure,lgd, maturity, rating, S1, S2 ,... . Take care of the right spelling of the column titles and capitalization.
 }
@@ -80,4 +89,12 @@ Dr. Matthias Fischer, Kevin Jakob & Stefan Kolb
 }
 \examples{
 MyModel=crp.init(PATH.IN=paste(system.file(package="crp.CSFP"),"/data/",sep=""),LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE)
+
+# or pass portfolio directly and use random sector variances
+Path=paste(system.file(package="crp.CSFP"),"/data/",sep="")
+portfolio=read.csv(paste(Path,"portfolio.csv",sep=""))
+risk.matrix=read.csv(paste(Path,"rating_pd.csv",sep=""))
+sec.var=data.frame(Var=runif(3,0,2))
+
+MyModel=crp.init(portfolio=portfolio,risk.matrix=risk.matrix,sec.var=sec.var,LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE,PATH.OUT=Path)
 }
