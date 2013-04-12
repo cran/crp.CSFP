@@ -72,8 +72,8 @@ setClass(Class="crp.CSFP",                                                      
               changes.crp.export="logical",
               file.format="character",
               input="list"),
-	   prototype=prototype( PATH.IN="C:\\",                                                            #define default values
-					PATH.OUT="C:\\",
+	   prototype=prototype( PATH.IN="C:/",                                                            #define default values
+					PATH.OUT="C:/",
 					PORT.NAME="portfolio.csv",
 					RISK.NAME="rating_pd.csv",
 					PDVAR.NAME="pd_sector_var.csv",
@@ -605,8 +605,8 @@ setMethod(f="crp.CSFP.loss",signature=c("crp.CSFP"),definition=function(this){
 
   cat("Exporting loss distribution...\n")
   FILE.TITLE="LOSSDIST"
-  FILE.NAME=paste(this@PATH.OUT,this@NAME,"\\",FILE.TITLE,".csv",sep="")
-  dir.create(paste(this@PATH.OUT,this@NAME,"\\",sep=""),showWarnings=FALSE)
+  FILE.NAME=paste(this@PATH.OUT,this@NAME,"/",FILE.TITLE,".csv",sep="")
+  dir.create(paste(this@PATH.OUT,this@NAME,"/",sep=""),showWarnings=FALSE)
   if(this@file.format=="csv")
     write.csv(matrix(cbind(this@LOSS,this@PDF,this@CDF),nrow=this@M+1,ncol=3,dimnames=list(1:length(this@PDF),c("Loss","pdf","cdf"))), file=FILE.NAME,row.names=FALSE)
   else if(this@file.format=="csv2")
@@ -1038,11 +1038,11 @@ setMethod(f="crp.export",signature=c("crp.CSFP"),definition=function(this){
   
   
   FILE.TITLE="RC"# File name of loss distribution
-  dir.create(paste(this@PATH.OUT,this@NAME,"\\",sep=""),showWarnings=FALSE)
+  dir.create(paste(this@PATH.OUT,this@NAME,"/",sep=""),showWarnings=FALSE)
   if(this@file.format=="csv")
-    write.csv(RC, file=paste(this@PATH.OUT,this@NAME,"\\",FILE.TITLE,".csv",sep=""),row.names=FALSE)
+    write.csv(RC, file=paste(this@PATH.OUT,this@NAME,"/",FILE.TITLE,".csv",sep=""),row.names=FALSE)
   else if(this@file.format=="csv2")
-    write.csv2(RC, file=paste(this@PATH.OUT,this@NAME,"\\",FILE.TITLE,".csv",sep=""),row.names=FALSE)
+    write.csv2(RC, file=paste(this@PATH.OUT,this@NAME,"/",FILE.TITLE,".csv",sep=""),row.names=FALSE)
   cat("Done....\n")
   remove(RC)
   
@@ -1123,11 +1123,11 @@ setMethod(f="crp.write.summary",signature=c("crp.CSFP"),definition=function(this
     
   if(deparse(substitute(this))!="this")
         this@NAME=deparse(substitute(this))
-  dir.create(paste(this@PATH.OUT,this@NAME,"\\",sep=""),showWarnings=FALSE)
+  dir.create(paste(this@PATH.OUT,this@NAME,"/",sep=""),showWarnings=FALSE)
   if(this@file.format=="csv")
-    write.csv(crp.summary(this),paste(this@PATH.OUT,this@NAME,"\\summary.csv",sep=""),row.names=FALSE)
+    write.csv(crp.summary(this),paste(this@PATH.OUT,this@NAME,"/summary.csv",sep=""),row.names=FALSE)
   else if(this@file.format=="csv2")
-    write.csv2(crp.summary(this),paste(this@PATH.OUT,this@NAME,"\\summary.csv",sep=""),row.names=FALSE)
+    write.csv2(crp.summary(this),paste(this@PATH.OUT,this@NAME,"/summary.csv",sep=""),row.names=FALSE)
 
   return(this)
 }
@@ -1260,6 +1260,35 @@ setMethod(f="crp.set.changes",signature=c("character","crp.CSFP"),definition=fun
   }
   return(this)
 })
+
+
+setMethod("show", signature = "crp.CSFP", definition = function(object){
+  
+  if(any(object@changes.crp.read,object@changes.crp.plausi,object@changes.crp.calc.portfolio.statistics,object@changes.crp.CSFP.loss,object@changes.crp.measure,object@changes.crp.plot,object@changes.crp.CSFP.rc.vares,object@changes.crp.CSFP.rc.sd,object@changes.crp.export))
+    cat("WARNING: Input parameters have been changed without recalculation of the model. Displayed results may be incorrect.\n")
+  S=crp.summary(object)
+  cat("Model name:",S$NAME,"\n")
+  cat("Number of counterparties:",S$NC,"\n")
+  cat("Number of sectors:",S$NS,"\n")
+  cat("Expected loss:",fo(S$EL),"(analytical);",fo(S$EL.crp),"(discretized)\n")
+  cat("      SD loss:",fo(S$SD),"(analytical);",fo(S$SD.crp),"(discretized)\n")
+  cat("Systematic SD:",fo(sqrt(S$SIGMA.SYST)),". Diversifiable SD:",fo(sqrt(S$SIGMA.DIV)),"\n")
+  cat("alpha:",S$ALPHA,"\n")
+  cat("   EC:",fo(S$EC),"\n")
+  cat("  VaR:",fo(S$VaR),"\n")
+  cat("   ES:",fo(S$ES),"\n")
+  cat("Loss unit:",fo(S$LOSS.UNIT),"\n")
+  if(S$NITER.MAX<1)
+    cat("Maximum level of cdf:",S$NITER.MAX,"\n")
+  else
+    cat("Maximum number of iterations for loss distribution:",fo(S$NITER.MAX),"\n")
+  cat("Calculation of risk contributions:",object@CALC.RISK.CONT,"\n")
+  
+})
+
+
+
+
   
 
 setGeneric("get.PATH.IN",function(this) standardGeneric("get.PATH.IN"))

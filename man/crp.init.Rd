@@ -5,7 +5,13 @@
 This function helps to create a new entity of a crp.CSFP object. The arguments, given to the functions become the attributes of the new model.
 }
 \usage{
-crp.init(PATH.IN, PATH.OUT, PORT.NAME = "portfolio.csv", RISK.NAME = "rating_pd.csv", PDVAR.NAME = "pd_sector_var.csv", SEC.VAR.EST = 5, LOSS.UNIT = 1e+06, NITER.MAX = 0.9999, NITER.MAX.GLOBAL = 1e+05, ALPHA = c(0.999), PLOT.PDF = TRUE, CALC.RISK.CONT = FALSE, PLOT.SCALE = 1e+06, PLOT.RANGE.X = c(0, 0), PLOT.RANGE.Y = c(0, 0), save.memory = FALSE, file.format = "csv", portfolio=data.frame(), risk.matrix=data.frame(), sec.var=data.frame())
+crp.init(PATH.IN, PATH.OUT, PORT.NAME = "portfolio.csv",
+RISK.NAME = "rating_pd.csv", PDVAR.NAME = "pd_sector_var.csv", SEC.VAR.EST = 5,
+LOSS.UNIT = 1e+06, NITER.MAX = 0.9999, NITER.MAX.GLOBAL = 1e+05,
+ALPHA = c(0.999), PLOT.PDF = TRUE, CALC.RISK.CONT = FALSE, PLOT.SCALE = 1e+06,
+PLOT.RANGE.X = c(0, 0), PLOT.RANGE.Y = c(0, 0), save.memory = FALSE,
+file.format = "csv", portfolio=data.frame(), risk.matrix=data.frame(),
+sec.var=data.frame())
 }
 \arguments{
   \item{PATH.IN}{
@@ -88,13 +94,15 @@ Dr. Matthias Fischer, Kevin Jakob & Stefan Kolb
 \code{\linkS4class{crp.CSFP}}
 }
 \examples{
-MyModel=crp.init(PATH.IN=paste(system.file(package="crp.CSFP"),"/data/",sep=""),LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE)
+MyModel=crp.init(PATH.IN=system.file("data",package="crp.CSFP"),LOSS.UNIT=1e6,
+CALC.RISK.CONT=TRUE)
 
 # or pass portfolio directly and use random sector variances
-Path=paste(system.file(package="crp.CSFP"),"/data/",sep="")
-portfolio=read.csv(paste(Path,"portfolio.csv",sep=""))
-risk.matrix=read.csv(paste(Path,"rating_pd.csv",sep=""))
+Path=system.file("data",package="crp.CSFP")
+portfolio=read.csv(paste(Path,"/portfolio.csv",sep=""))
+risk.matrix=read.csv(paste(Path,"/rating_pd.csv",sep=""))
 sec.var=data.frame(Var=runif(3,0,2))
 
-MyModel=crp.init(portfolio=portfolio,risk.matrix=risk.matrix,sec.var=sec.var,LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE,PATH.OUT=Path)
+MyModel=crp.init(portfolio=portfolio,risk.matrix=risk.matrix,sec.var=sec.var,
+LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE,PATH.OUT=Path)
 }

@@ -131,15 +131,17 @@ Gundlach & Lehrbass, "CreditRisk+ in the Banking Industry", Springer, 2003
 Dr. Matthias Fischer, Kevin Jakob & Stefan Kolb
 }
 \examples{
-MyModel=crp.init(PATH.IN=paste(system.file(package="crp.CSFP"),"/data/",sep=""),LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE)
+MyModel=crp.init(PATH.IN=system.file("data",package="crp.CSFP"),LOSS.UNIT=1e6,
+CALC.RISK.CONT=TRUE)
 
 # or pass portfolio directly and use random sector variances
-Path=paste(system.file(package="crp.CSFP"),"/data/",sep="")
-portfolio=read.csv(paste(Path,"portfolio.csv",sep=""))
-risk.matrix=read.csv(paste(Path,"rating_pd.csv",sep=""))
+Path=system.file("data",package="crp.CSFP")
+portfolio=read.csv(paste(Path,"/portfolio.csv",sep=""))
+risk.matrix=read.csv(paste(Path,"/rating_pd.csv",sep=""))
 sec.var=data.frame(Var=runif(3,0,2))
 
-MyModel=crp.init(portfolio=portfolio,risk.matrix=risk.matrix,sec.var=sec.var,LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE,PATH.OUT=Path)
+MyModel=crp.init(portfolio=portfolio,risk.matrix=risk.matrix,sec.var=sec.var,
+LOSS.UNIT=1e6,CALC.RISK.CONT=TRUE,PATH.OUT=Path)
 
 # execute portfolio calculation
 MyModel=crp.CSFP(MyModel)

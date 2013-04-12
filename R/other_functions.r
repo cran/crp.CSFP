@@ -2,7 +2,7 @@ crp.round <- function(a){ifelse(a%%0.5==0&a%%1!=0&trunc(a)%%2==0,round(a,0)+1,ro
 
 crp.init <- function(PATH.IN,PATH.OUT,PORT.NAME="portfolio.csv",RISK.NAME="rating_pd.csv",PDVAR.NAME="pd_sector_var.csv",SEC.VAR.EST=5,LOSS.UNIT=1e6,NITER.MAX=0.9999,NITER.MAX.GLOBAL=1e5,ALPHA=c(0.999),PLOT.PDF=TRUE,CALC.RISK.CONT=FALSE,PLOT.SCALE=1e6,PLOT.RANGE.X=c(0,0),PLOT.RANGE.Y=c(0,0),save.memory=FALSE,file.format="csv",portfolio=data.frame(),risk.matrix=data.frame(),sec.var=data.frame()){
  
-  cat("    CreditRisk+ portfolio model \n    Copyright (C) 2011  Dr. Matthias Fischer, Kevin Jakob & Stefan Kolb
+  packageStartupMessage("    CreditRisk+ portfolio model \n    Copyright (C) 2011  Dr. Matthias Fischer, Kevin Jakob & Stefan Kolb
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -23,8 +23,16 @@ crp.init <- function(PATH.IN,PATH.OUT,PORT.NAME="portfolio.csv",RISK.NAME="ratin
     return()
   }
   else if(missing(PATH.IN)){
-    PATH.IN="C:\\"
+    PATH.IN="C:/"
     missing.PATH.IN=TRUE
+  }
+  if(!missing.PATH.IN){
+    if(substr(PATH.IN,nchar(PATH.IN),nchar(PATH.IN))!="/" && substr(PATH.IN,nchar(PATH.IN),nchar(PATH.IN))!="\\")
+      PATH.IN=paste(PATH.IN,"/",sep="")
+  }
+  if(!missing(PATH.OUT)){
+    if(substr(PATH.OUT,nchar(PATH.OUT),nchar(PATH.OUT))!="/" && substr(PATH.OUT,nchar(PATH.OUT),nchar(PATH.OUT))!="\\")
+      PATH.OUT=paste(PATH.OUT,"/",sep="")
   }
   if(missing(PATH.OUT) && !missing.PATH.IN)
     PATH.OUT=PATH.IN
@@ -44,6 +52,9 @@ crp.init <- function(PATH.IN,PATH.OUT,PORT.NAME="portfolio.csv",RISK.NAME="ratin
 }
 
 fo <- function(x){                                                                                   # function formatting the output of big numbers
+  
+  if(!is.numeric(x))
+    return(x)
   s=""
   s1=""
   for(i in 1:length(x)){
@@ -57,7 +68,11 @@ fo <- function(x){                                                              
       s1=paste(round(x[i]/1e3,2),"Thd.")
     else
       s1=paste(round(x[i],2))
-    s=paste(s,s1)
+    if(i==1)
+      s=s1
+    else
+      s=paste(s,s1)
   }
   return(s)
 }
+
