@@ -2,7 +2,7 @@
 \alias{crp.CSFP-package}
 \docType{package}
 \title{
-CreditRisk+ portfolio model
+CreditRisk+ Portfolio Model
 }
 \description{
 Modelling credit risks based on the concept of "CreditRisk+", First Boston Financial Products, 1997 and "CreditRisk+ in the Banking Industry", Gundlach & Lehrbass, Springer, 2003.
@@ -13,10 +13,10 @@ Modelling credit risks based on the concept of "CreditRisk+", First Boston Finan
 \tabular{ll}{
 Package: \tab crp.CSFP\cr
 Type: \tab Package\cr
-Version: \tab 2.0\cr
-Date: \tab 2013-07-27\cr
+Version: \tab 2.0.1\cr
+Date: \tab 2015-07-10\cr
 License: \tab GPL-2?\cr
-Depends: \tab methods\cr
+Imports: \tab methods, MASS, utils, graphics\cr
 }
 For first use have a look at \code{\link{crp.CSFP-class}}, \code{\link{crp.CSFP}} or \code{\link{init}}
 }

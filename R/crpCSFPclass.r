@@ -32,9 +32,9 @@ setClass(Class="crp.CSFP",                                                      
 							M="numeric",
 							mu.k="numeric",
 							loss.k="numeric",
-              sigma.k="numeric",
-							sigma.sqr.div="numeric",
-							sigma.sqr.syst="numeric",
+              sigma_k="numeric",
+							sigma_sqr_div="numeric",
+							sigma_sqr_syst="numeric",
 							SD="numeric",
 							SD.crp="numeric",
 							W="matrix",
@@ -105,9 +105,9 @@ setClass(Class="crp.CSFP",                                                      
 					M=0,
 					mu.k=0,
 					loss.k=0,
-					sigma.k=0,
-					sigma.sqr.div=0,
-					sigma.sqr.syst=0,
+					sigma_k=0,
+					sigma_sqr_div=0,
+					sigma_sqr_syst=0,
 					SD=0,
 					SD.crp=0,
 					W=matrix(),
@@ -154,7 +154,7 @@ setMethod("read",c("crp.CSFP"),function(this) {
 #       <read>      Import portfolio and risk data
 #
 #       Last Modified:  24/06/2013
-#       Author:         Matthias Fischer & Kevin Jakob, BLB        
+#       Author:         Matthias Fischer & Kevin Jakob        
 #
 
    ERROR=0
@@ -440,25 +440,25 @@ setMethod(f="calc.portfolio.statistics",signature=c("crp.CSFP"),definition=funct
       this@mu.k[k]=sum(TEMP[SELECTION]*this@PD.crp[SELECTION])                                             # formula (39), CSFP 1997, p. 43
       this@loss.k[k]=sum(TEMP[SELECTION]*this@PD.crp[SELECTION]*this@PL.crp[SELECTION])                           # required for risk contributions
       if(this@sec.var.est==1)
-        this@sigma.k[k]=sum(TEMP[SELECTION]*this@rating.SD[this@CP.rating[SELECTION]])                 # (2.21) p. 17 in Gundlach/Lehrbass (2003)
+        this@sigma_k[k]=sum(TEMP[SELECTION]*this@rating.SD[this@CP.rating[SELECTION]])                 # (2.21) p. 17 in Gundlach/Lehrbass (2003)
       else if(this@sec.var.est==2)
-        this@sigma.k[k]=sum(TEMP[SELECTION]*this@rating.SD[this@CP.rating[SELECTION]])/this@mu.k[k]    # (2.21) p. 17 in Gundlach/Lehrbass (2003)
+        this@sigma_k[k]=sum(TEMP[SELECTION]*this@rating.SD[this@CP.rating[SELECTION]])/this@mu.k[k]    # (2.21) p. 17 in Gundlach/Lehrbass (2003)
       else if(this@sec.var.est==3)
-        this@sigma.k[k]=sum(sqrt(TEMP[SELECTION])*this@rating.SD[this@CP.rating[SELECTION]])           # (++++) p. 18 in Gundlach/Lehrbass (2003)
+        this@sigma_k[k]=sum(sqrt(TEMP[SELECTION])*this@rating.SD[this@CP.rating[SELECTION]])           # (++++) p. 18 in Gundlach/Lehrbass (2003)
       else if(this@sec.var.est==4)
-        this@sigma.k[k]=sum(sqrt(TEMP[SELECTION])*this@rating.SD[this@CP.rating[SELECTION]])/this@mu.k[k]     # divided by mu.k
+        this@sigma_k[k]=sum(sqrt(TEMP[SELECTION])*this@rating.SD[this@CP.rating[SELECTION]])/this@mu.k[k]     # divided by mu.k
     }
     else if(length(SELECTION)==0 && this@sec.var.est!=5){
       this@loss.k[k]=NA
       this@mu.k[k]=NA
-      this@sigma.k=NA
+      this@sigma_k=NA
     }
     if(this@sec.var.est==5){
       if(length(SELECTION)>0){
         this@mu.k[k]=sum(TEMP[SELECTION]*this@PD.crp[SELECTION])                                             # formula (39), CSFP 1997, p. 43
         this@loss.k[k]=sum(TEMP[SELECTION]*this@PD.crp[SELECTION]*this@PL.crp[SELECTION])
       }  
-      this@sigma.k[k]=sqrt(as.numeric(this@sec.var[k]))                                              # from an external file
+      this@sigma_k[k]=sqrt(as.numeric(this@sec.var[k]))                                              # from an external file
     }
     else
         cat("Wrong specification for the sector variance!\n")
@@ -468,14 +468,14 @@ setMethod(f="calc.portfolio.statistics",signature=c("crp.CSFP"),definition=funct
   remove(TEMP)
   remove(SELECTION)
 
-  this@sigma.sqr.syst=sum(this@sigma.k^2*this@loss.k*this@loss.k)  			                                   # portfolio standard diviation
+  this@sigma_sqr_syst=sum(this@sigma_k^2*this@loss.k*this@loss.k)  			                                   # portfolio standard diviation
   
   cat("Sector information completed...\n")
-  this@sigma.sqr.div=sum(this@PL.crp^2*this@PD.crp)                                                             # diversifible risk
-  cat("Diversifible risk: ",fo(this@sigma.sqr.div),"  Systematic risk: ",fo(this@sigma.sqr.syst),"\n")
+  this@sigma_sqr_div=sum(this@PL.crp^2*this@PD.crp)                                                             # diversifible risk
+  cat("Diversifible risk: ",fo(this@sigma_sqr_div),"  Systematic risk: ",fo(this@sigma_sqr_syst),"\n")
     
   this@EL=sum(this@PL*this@PD)                                                                     # expected loss
-  this@SD=sqrt(this@sigma.sqr.div+this@sigma.sqr.syst)                                                     # standard deviation
+  this@SD=sqrt(this@sigma_sqr_div+this@sigma_sqr_syst)                                                     # standard deviation
   
   cat("Calculating portfolio statistics....\n")
   cat("Portfolio net exposure:",fo(sum(as.numeric(this@NEX))),"\n")
@@ -534,7 +534,7 @@ setMethod(f="loss.dist",signature=c("crp.CSFP"),definition=function(this){
   a=rep(0,this@M+1)                                                                                  # every calling of 'this' . This will increase 
   PDF=rep(0,this@M+1)                                                                                # speed but needs more memory.
   CDF=rep(0,this@M+1)
-  sigma.k=this@sigma.k
+  sigma_k=this@sigma_k
   mu.k=this@mu.k
   nu=this@nu
   W=this@W
@@ -565,10 +565,10 @@ setMethod(f="loss.dist",signature=c("crp.CSFP"),definition=function(this){
 
   else{                                                                                              # standard case
     for(k in 1:this@NS){
-	    A[k,1]=1+sigma.k[k]^2*mu.k[k]
+	    A[k,1]=1+sigma_k[k]^2*mu.k[k]
 	    B[k,1]=-log(A[k,1])
 	  }
-	  a[1]=-sum(W[,1]*PD)+sum(B[,1]/(sigma.k[1:this@NS]^2))
+	  a[1]=-sum(W[,1]*PD)+sum(B[,1]/(sigma_k[1:this@NS]^2))
 	  PDF[1]=exp(a[1])
 	  CDF[1]=PDF[1]
 	
@@ -580,7 +580,7 @@ setMethod(f="loss.dist",signature=c("crp.CSFP"),definition=function(this){
       SELECT=which(nu==j)
 		  for(k in 1:this@NS){
 		    if(length(SELECT)>0)
-			    A[k,j+1]=sigma.k[k]^2*sum(W[SELECT,k+1]*PD[SELECT])
+			    A[k,j+1]=sigma_k[k]^2*sum(W[SELECT,k+1]*PD[SELECT])
 		    if(j+1==2)
 			    B[k,2]=A[k,2]/A[k,1]
 		    else
@@ -590,13 +590,13 @@ setMethod(f="loss.dist",signature=c("crp.CSFP"),definition=function(this){
 		  sum1=0
       if(length(SELECT)>0)
         sum1=sum(W[SELECT,1]*PD[SELECT])
-      a[j+1]=sum1+sum(B[,j+1]/(sigma.k[1:this@NS]^2))
+      a[j+1]=sum1+sum(B[,j+1]/(sigma_k[1:this@NS]^2))
       PDF[j+1]=sum((1:j)/j*a[2:(j+1)]*PDF[j:1])
 		  CDF[j+1]=CDF[j]+PDF[j+1]
 	  }
     cat("\n")
 
-    remove(list=c("A","SELECT","W","sigma.k","mu.k","PD","nu"))	
+    remove(list=c("A","SELECT","W","sigma_k","mu.k","PD","nu"))	
 	  this@PDF=PDF
     remove(PDF)
 	  this@CDF=CDF
@@ -964,7 +964,7 @@ setMethod(f="rc.sd",signature="crp.CSFP",definition=function(this){
   W=this@W
   SD.cont=as.numeric(this@NC)
   SD=this@SD
-  sigma.k=this@sigma.k
+  sigma_k=this@sigma_k
   loss.k=this@loss.k
     
   if(sum(W[,2:(NS+1)])==0){                                                                          # just ideosyncratic factor exists
@@ -973,7 +973,7 @@ setMethod(f="rc.sd",signature="crp.CSFP",definition=function(this){
   }
   else{
     for(i in 1:NC){                                                                                  # calculation based on formula (2.27) in 
-      k=sum(sigma.k^2*W[i,-1]*loss.k)                                                                   # Gundlach/Lehrbass (2003)
+      k=sum(sigma_k^2*W[i,-1]*loss.k)                                                                   # Gundlach/Lehrbass (2003)
       SD.cont[i]=(PL[i]*PD[i]/SD)*(PL[i]+k)
     }
   }
@@ -982,7 +982,7 @@ setMethod(f="rc.sd",signature="crp.CSFP",definition=function(this){
   else
 	  cat("Sum Check SD: NOT OK, Difference:",fo(sum(SD.cont)-SD),"\n")
 
-  remove(list=c("PL","PD","W","sigma.k","loss.k"))
+  remove(list=c("PL","PD","W","sigma_k","loss.k"))
   this@SD.cont=SD.cont
   remove(SD.cont)    
     
@@ -1157,8 +1157,8 @@ setMethod(f="summary",signature=c("crp.CSFP"),definition=function(object){
     S=list(name=object@name,sec.var.est=object@sec.var.est,
            loss.unit=object@loss.unit,Niter.max=object@Niter.max,NC=object@NC,
            NS=object@NS,EL=object@EL,EL.crp=object@EL.crp,SD=object@SD,
-           SD.crp=object@SD.crp,SIGMA.DIV=object@sigma.sqr.div,
-           SIGMA.SYST=object@sigma.sqr.syst,alpha.max=object@alpha.max,
+           SD.crp=object@SD.crp,SIGMA.DIV=object@sigma_sqr_div,
+           SIGMA.SYST=object@sigma_sqr_syst,alpha.max=object@alpha.max,
            PL=sum(object@PL),alpha=object@alpha,VaR=object@VaR,EC=object@EC,
            ES=object@ES)
     return(S)
@@ -1657,20 +1657,20 @@ setMethod(f="loss.k",signature=c("crp.CSFP"),definition=function(this){
   integrity.check("calc.portfolio.statistics",this)
   this@loss.k})
 
-setGeneric("sigma.k",function(this) standardGeneric("sigma.k"))
-setMethod(f="sigma.k",signature=c("crp.CSFP"),definition=function(this){
-  integrity.check("calc.portfolio.statistics",this)
-  this@sigma.k})
+setGeneric("sigma_k",function(object,...) standardGeneric("sigma_k"))
+setMethod(f="sigma_k",signature=c("crp.CSFP"),definition=function(object,...){
+  integrity.check("calc.portfolio.statistics",object)
+  object@sigma_k})
 
-setGeneric("sigma.sqr.div",function(this) standardGeneric("sigma.sqr.div"))
-setMethod(f="sigma.sqr.div",signature=c("crp.CSFP"),definition=function(this){
-  integrity.check("calc.portfolio.statistics",this)
-  this@sigma.sqr.div})
+setGeneric("sigma_sqr_div",function(object,...) standardGeneric("sigma_sqr_div"))
+setMethod(f="sigma_sqr_div",signature=c("crp.CSFP"),definition=function(object,...){
+  integrity.check("calc.portfolio.statistics",object)
+  object@sigma_sqr_div})
 
-setGeneric("sigma.sqr.syst",function(this) standardGeneric("sigma.sqr.syst"))
-setMethod(f="sigma.sqr.syst",signature=c("crp.CSFP"),definition=function(this){
-  integrity.check("calc.portfolio.statistics",this)
-  this@sigma.sqr.syst})
+setGeneric("sigma_sqr_syst",function(object,...) standardGeneric("sigma_sqr_syst"))
+setMethod(f="sigma_sqr_syst",signature=c("crp.CSFP"),definition=function(object,...){
+  integrity.check("calc.portfolio.statistics",object)
+  object@sigma_sqr_syst})
 
 setGeneric("SD",function(this) standardGeneric("SD"))
 setMethod(f="SD",signature=c("crp.CSFP"),definition=function(this){
@@ -1814,394 +1814,4 @@ setGeneric("changes.export",function(this) standardGeneric("changes.export"))
 setMethod(f="changes.export",signature=c("crp.CSFP"),definition=function(this){
   this@changes.export
   })
-
-
-
-########################################
-# old methods
-########################################
-setGeneric("crp.read",function(this) standardGeneric("crp.read"))
-setMethod("crp.read",c("crp.CSFP"),function(this) {
-  cat("Function crp.read() is depricated, please use read() insted.\n");this
-})
-
-
-setGeneric("crp.plausi",function(this) standardGeneric("crp.plausi"))
-setMethod(f="crp.plausi",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.plausi() is depricated, please use plausi() insted.\n");this
-  })
-
-setGeneric("crp.calc.portfolio.statistics",function(this) standardGeneric("crp.calc.portfolio.statistics"))
-setMethod(f="crp.calc.portfolio.statistics",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.calc.portfolio.statistics() is depricated, please use calc.portfolio.statistics() insted.\n");this
-})
-
-
-setGeneric("crp.CSFP.loss",function(this) standardGeneric("crp.CSFP.loss"))
-setMethod(f="crp.CSFP.loss",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.CSFP.loss() is depricated, please use loss.dist() insted.\n");this
-})
-
-
-setGeneric("crp.measure",function(this) standardGeneric("crp.measure"))
-setMethod(f="crp.measure",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.measure() is depricated, please use measure() insted.\n");this
-})
-
-setGeneric("crp.plot",function(this) standardGeneric("crp.plot"))
-setMethod(f="crp.plot",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.plot() is depricated, please use plot() insted.\n");this
-})
-
-
-setGeneric("crp.CSFP.rc.sd",function(this) standardGeneric("crp.CSFP.rc.sd"))
-setMethod(f="crp.CSFP.rc.sd",signature="crp.CSFP",definition=function(this){
-  cat("Function crp.CSFP.rc.sd() is depricated, please use rc.sd() insted.\n");this
-})
-
-
-setGeneric("crp.CSFP.rc.vares",function(this) standardGeneric("crp.CSFP.rc.vares"))
-setMethod(f="crp.CSFP.rc.vares",signature="crp.CSFP",definition=function(this){
-  cat("Function crp.CSFP.rc.vares() is depricated, please use rc.vares() insted.\n");this
-})
-
-setGeneric("crp.export",function(this) standardGeneric("crp.export"))
-setMethod(f="crp.export",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.export() is depricated, please use export() insted.\n");this
-})
-
-
-setGeneric("crp.summary",function(this) standardGeneric("crp.summary"))
-setMethod(f="crp.summary",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.summary() is depricated, please use summary() insted.\n")
-  
-}
-)
-
-setGeneric("crp.set.changes",function(method,this) standardGeneric("crp.set.changes"))
-setMethod(f="crp.set.changes",signature=c("character","crp.CSFP"),definition=function(method,this){
-  cat("Function crp.set.changes() is depricated, please use set.changes() insted.\n")
-})
-
-
-setGeneric("get.PATH.IN",function(this) standardGeneric("get.PATH.IN"))
-setMethod(f="get.PATH.IN",signature=c("crp.CSFP"),definition=function(this) cat("Function get.PATH.IN() is depricated, please use path.in() insted.\n")
-)
-setGeneric("set.PATH.IN<-",function(this,value) standardGeneric("set.PATH.IN<-"))
-setReplaceMethod(f="set.PATH.IN",signature=c("crp.CSFP","character"),definition=function(this,value){  cat("Function set.PATH.in() is depricated, please use path.in() insted.\n");this
-})
-
-setGeneric("get.PATH.OUT",function(this) standardGeneric("get.PATH.OUT"))
-setMethod(f="get.PATH.OUT",signature=c("crp.CSFP"),definition=function(this)  cat("Function get.PATH.OUT() is depricated, please use path.out() insted.\n")
-)
-setGeneric("set.PATH.OUT<-",function(this,value) standardGeneric("set.PATH.OUT<-"))
-setReplaceMethod(f="set.PATH.OUT",signature=c("crp.CSFP","character"),definition=function(this,value){  cat("Function set.PATH.OUT() is depricated, please use path.out() insted.\n");this
-})
-
-setGeneric("get.PORT.NAME",function(this) standardGeneric("get.PORT.NAME"))
-setMethod(f="get.PORT.NAME",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.PORT.NAME() is depricated, please use port.name() insted.\n")
-)
-setGeneric("set.PORT.NAME<-",function(this,value) standardGeneric("set.PORT.NAME<-"))
-setReplaceMethod(f="set.PORT.NAME",signature=c("crp.CSFP","character"),definition=function(this,value){  cat("Function set.PORT.NAME() is depricated, please use port.name() insted.\n");this
-})
-
-setGeneric("get.NAME",function(this) standardGeneric("get.NAME"))
-setMethod(f="get.NAME",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.NAME() is depricated, please use name() insted.\n")
-)
-setGeneric("set.NAME<-",function(this,value) standardGeneric("set.NAME<-"))
-setReplaceMethod(f="set.NAME",signature=c("crp.CSFP","character"),definition=function(this,value){  cat("Function set.NAME() is depricated, please use name() insted.\n");this
-})
-
-setGeneric("get.RISK.NAME",function(this) standardGeneric("get.RISK.NAME"))
-setMethod(f="get.RISK.NAME",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.RISK.NAME() is depricated, please use rating.scale.name() insted.\n")
-)
-setGeneric("set.RISK.NAME<-",function(this,value) standardGeneric("set.RISK.NAME<-"))
-setReplaceMethod(f="set.RISK.NAME",signature=c("crp.CSFP","character"),definition=function(this,value){  cat("Function set.RISK.NAME() is depricated, please use rating.scale.name() insted.\n");this
-})
-
-setGeneric("get.PDVAR.NAME",function(this) standardGeneric("get.PDVAR.NAME"))
-setMethod(f="get.PDVAR.NAME",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.PDVAR.NAME() is depricated, please use sec.var.name() insted.\n")
-)
-setGeneric("set.PDVAR.NAME<-",function(this,value) standardGeneric("set.PDVAR.NAME<-"))
-setReplaceMethod(f="set.PDVAR.NAME",signature=c("crp.CSFP","character"),definition=function(this,value){  cat("Function set.PDVAR.NAME() is depricated, please use sec.var.name() insted.\n");this
-})
-
-setGeneric("get.SEC.VAR.EST",function(this) standardGeneric("get.SEC.VAR.EST"))
-setMethod(f="get.SEC.VAR.EST",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.SEC.VAR.EST() is depricated, please use sec.var.est() insted.\n")
-)
-setGeneric("set.SEC.VAR.EST<-",function(this,value) standardGeneric("set.SEC.VAR.EST<-"))
-setReplaceMethod(f="set.SEC.VAR.EST",signature=c("crp.CSFP","numeric"),definition=function(this,value){  cat("Function set.SEC.VAR.EST() is depricated, please use sec.var.est() insted.\n");this
-})
-
-setGeneric("get.LOSS.UNIT",function(this) standardGeneric("get.LOSS.UNIT"))
-setMethod(f="get.LOSS.UNIT",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.LOSS.UNIT() is depricated, please use loss.unit() insted.\n")
-)
-setGeneric("set.LOSS.UNIT<-",function(this,value) standardGeneric("set.LOSS.UNIT<-"))
-setReplaceMethod(f="set.LOSS.UNIT",signature=c("crp.CSFP","numeric"),definition=function(this,value){  cat("Function set.LOSS.UNIT() is depricated, please use loss.unit() insted.\n");this
-})
-
-setGeneric("get.NITER.MAX",function(this) standardGeneric("get.NITER.MAX"))
-setMethod(f="get.NITER.MAX",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.NITER.MAX() is depricated, please use Niter.max() or alpha.max() insted.\n")
-)
-setGeneric("set.NITER.MAX<-",function(this,value) standardGeneric("set.NITER.MAX<-"))
-setReplaceMethod(f="set.NITER.MAX",signature=c("crp.CSFP","numeric"),definition=function(this,value){  cat("Function set.NITER.MAX() is depricated, please use Niter.max() or alpha.max() insted.\n");this
-})
-
-setGeneric("get.ALPHA",function(this) standardGeneric("get.ALPHA"))
-setMethod(f="get.ALPHA",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.alpha() is depricated, please use alpha() insted.\n")
-)
-setGeneric("set.ALPHA<-",function(this,value) standardGeneric("set.ALPHA<-"))
-setReplaceMethod(f="set.ALPHA",signature=c("crp.CSFP","numeric"),definition=function(this,value){  cat("Function set.ALPHA() is depricated, please use alpha() insted.\n");this
-})
-
-setGeneric("get.PLOT.PDF",function(this) standardGeneric("get.PLOT.PDF"))
-setMethod(f="get.PLOT.PDF",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.PLOT.PDF() is depricated, please use PLOT.PDF() insted.\n")
-)
-setGeneric("set.PLOT.PDF<-",function(this,value) standardGeneric("set.PLOT.PDF<-"))
-setReplaceMethod(f="set.PLOT.PDF",signature=c("crp.CSFP","logical"),definition=function(this,value){  cat("Function set.PLOT.PDF() is depricated, please use PLOT.PDF() insted.\n");this
-})
-
-setGeneric("get.CALC.RISK.CONT",function(this) standardGeneric("get.CALC.RISK.CONT"))
-setMethod(f="get.CALC.RISK.CONT",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.CALC.RISK.CONT() is depricated, please use calc.rc() insted.\n")
-)
-setGeneric("set.CALC.RISK.CONT<-",function(this,value) standardGeneric("set.CALC.RISK.CONT<-"))
-setReplaceMethod(f="set.CALC.RISK.CONT",signature=c("crp.CSFP","logical"),definition=function(this,value){  cat("Function set.CALC.RISK.CONT() is depricated, please use calc.rc() insted.\n");this
-})
-
-setGeneric("get.save.memory",function(this) standardGeneric("get.save.memory"))
-setMethod(f="get.save.memory",signature=c("crp.CSFP"),definition=function(this)   cat("Function get.save.memory() is depricated, please use save.memory() insted.\n")
-)
-setGeneric("set.save.memory<-",function(this,value) standardGeneric("set.save.memory<-"))
-setReplaceMethod(f="set.save.memory",signature=c("crp.CSFP","logical"),definition=function(this,value){cat("Function set.save.memory() is depricated, please use save.memory() insted.\n");this})
-
-setGeneric("get.PLOT.RANGE.X",function(this) standardGeneric("get.PLOT.RANGE.X"))
-setMethod(f="get.PLOT.RANGE.X",signature=c("crp.CSFP"),definition=function(this) cat("Function get.PLOT.RANGE.X() is depricated, please use PLOT.range.x() insted.\n"))
-setGeneric("set.PLOT.RANGE.X<-",function(this,value) standardGeneric("set.PLOT.RANGE.X<-"))
-setReplaceMethod(f="set.PLOT.RANGE.X",signature=c("crp.CSFP","numeric"),definition=function(this,value){cat("Function set.PLOT.RANGE.X() is depricated, please use PLOT.range.x() insted.\n");this})
-
-setGeneric("get.PLOT.RANGE.Y",function(this) standardGeneric("get.PLOT.RANGE.Y"))
-setMethod(f="get.PLOT.RANGE.Y",signature=c("crp.CSFP"),definition=function(this) cat("Function get.PLOT.RANGE.Y() is depricated, please use PLOT.range.y() insted.\n"))
-setGeneric("set.PLOT.RANGE.Y<-",function(this,value) standardGeneric("set.PLOT.RANGE.Y<-"))
-setReplaceMethod(f="set.PLOT.RANGE.Y",signature=c("crp.CSFP","numeric"),definition=function(this,value){cat("Function set.PLOT.RANGE.Y() is depricated, please use PLOT.range.y() insted.\n");this})
-
-setGeneric("get.PLOT.SCALE",function(this) standardGeneric("get.PLOT.SCALE"))
-setMethod(f="get.PLOT.SCALE",signature=c("crp.CSFP"),definition=function(this) cat("Function get.PLOT.SCALE() is depricated, please use PLOT.scale() insted.\n"))
-setGeneric("set.PLOT.SCALE<-",function(this,value) standardGeneric("set.PLOT.SCALE<-"))
-setReplaceMethod(f="set.PLOT.SCALE",signature=c("crp.CSFP","numeric"),definition=function(this,value){cat("Function set.PLOT.SCALE() is depricated, please use PLOT.scale() insted.\n");this})
-
-setGeneric("get.file.format",function(this) standardGeneric("get.file.format"))
-setMethod(f="get.file.format",signature=c("crp.CSFP"),definition=function(this) cat("Function get.file.format() is depricated, please use file.format() insted.\n"))
-setGeneric("set.file.format<-",function(this,value) standardGeneric("set.file.format<-"))
-setReplaceMethod(f="set.file.format",signature=c("crp.CSFP","character"),definition=function(this,value){cat("Function set.file.format() is depricated, please use file.format() insted.\n");this})
-
-
-setGeneric("get.NS",function(this) standardGeneric("get.NS"))
-setMethod(f="get.NS",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.NS() is depricated, please use NS() insted.\n")})
-
-setGeneric("get.NC",function(this) standardGeneric("get.NC"))
-setMethod(f="get.NC",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.file.format() is depricated, please use file.format() insted.\n")})
-
-setGeneric("get.SEC.VAR",function(this) standardGeneric("get.SEC.VAR"))
-setMethod(f="get.SEC.VAR",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SEC.VAR() is depricated, please use sec.var() insted.\n")})
-
-setGeneric("get.NEX",function(this) standardGeneric("get.NEX"))
-setMethod(f="get.NEX",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.NEX() is depricated, please use NEX() insted.\n")})
-
-setGeneric("get.LGD",function(this) standardGeneric("get.LGD"))
-setMethod(f="get.LGD",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.LGD() is depricated, please use LGD() insted.\n")})
-
-setGeneric("get.PL0",function(this) standardGeneric("get.PL0"))
-setMethod(f="get.PL0",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.PL0() is depricated, please use PL() insted.\n")})
-
-setGeneric("get.PD0",function(this) standardGeneric("get.PD0"))
-setMethod(f="get.PD0",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.PD0()) is depricated, please use PD() insted.\n")})
-
-setGeneric("get.EL",function(this) standardGeneric("get.EL"))
-setMethod(f="get.EL",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.EL() is depricated, please use EL() insted.\n")})
-
-setGeneric("get.NU",function(this) standardGeneric("get.NU"))
-setMethod(f="get.NU",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.NU() is depricated, please use nu() insted.\n")})
-
-setGeneric("get.PL",function(this) standardGeneric("get.PL"))
-setMethod(f="get.PL",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.PL() is depricated, please use PL.crp() insted.\n")})
-
-setGeneric("get.PD",function(this) standardGeneric("get.PD"))
-setMethod(f="get.PD",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.PD() is depricated, please use PD.crp() insted.\n")})
-
-setGeneric("get.CP.RATING",function(this) standardGeneric("get.CP.RATING"))
-setMethod(f="get.CP.RATING",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.CP.RATING() is depricated, please use CP.rating() insted.\n")})
-
-setGeneric("get.CP.NR",function(this) standardGeneric("get.CP.NR"))
-setMethod(f="get.CP.NR",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.CP.NR() is depricated, please use CP.NR() insted.\n")})
-
-setGeneric("get.W",function(this) standardGeneric("get.W"))
-setMethod(f="get.W",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.W() is depricated, please use W() insted.\n")})
-
-setGeneric("get.rating.PD",function(this) standardGeneric("get.rating.PD"))
-setMethod(f="get.rating.PD",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.rating.PD() is depricated, please use rating.PD() insted.\n")})
-
-setGeneric("get.rating",function(this) standardGeneric("get.rating"))
-setMethod(f="get.rating",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.rating() is depricated, please use rating() insted.\n")})
-
-setGeneric("get.rating.SD",function(this) standardGeneric("get.rating.SD"))
-setMethod(f="get.rating.SD",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.rating.SD() is depricated, please use rating.SD() insted.\n")})
-
-setGeneric("get.M",function(this) standardGeneric("get.M"))
-setMethod(f="get.M",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.M() is depricated, please use M() insted.\n")})
-
-setGeneric("get.MU.K",function(this) standardGeneric("get.MU.K"))
-setMethod(f="get.MU.K",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.MU.K() is depricated, please use mu.k() insted.\n")})
-
-setGeneric("get.V.K",function(this) standardGeneric("get.V.K"))
-setMethod(f="get.V.K",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.V.K() is depricated, please use loss.k() insted.\n")})
-
-setGeneric("get.SIGMA.K",function(this) standardGeneric("get.SIGMA.K"))
-setMethod(f="get.SIGMA.K",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SIGMA.K() is depricated, please use sigma.k() insted.\n")})
-
-setGeneric("get.SIGMA2_DIV",function(this) standardGeneric("get.SIGMA2_DIV"))
-setMethod(f="get.SIGMA2_DIV",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SIGMA2_DIV() is depricated, please use sigma.sqr.div() insted.\n")})
-
-setGeneric("get.SIGMA2_SYST",function(this) standardGeneric("get.SIGMA2_SYST"))
-setMethod(f="get.SIGMA2_SYST",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SIGMA2_SYST() is depricated, please use sigma.sqr.syst() insted.\n")})
-
-setGeneric("get.SD",function(this) standardGeneric("get.SD"))
-setMethod(f="get.SD",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SD() is depricated, please use SD() insted.\n")})
-
-setGeneric("get.ALPHA.MAX",function(this) standardGeneric("get.ALPHA.MAX"))
-setMethod(f="get.ALPHA.MAX",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.ALPHA.MAX() is depricated, please use alpha.max() insted.\n")})
-
-setGeneric("get.a",function(this) standardGeneric("get.a"))
-setMethod(f="get.a",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.a() is depricated, please use a() insted.\n")})
-
-setGeneric("get.PDF",function(this) standardGeneric("get.PDF"))
-setMethod(f="get.PDF",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.PDF() is depricated, please use PDF() insted.\n")})
-
-setGeneric("get.CDF",function(this) standardGeneric("get.CDF"))
-setMethod(f="get.CDF",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.CDF() is depricated, please use CDF() insted.\n")})
-
-setGeneric("get.B",function(this) standardGeneric("get.B"))
-setMethod(f="get.B",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.B() is depricated, please use B() insted.\n")})
-
-setGeneric("get.LOSS",function(this) standardGeneric("get.LOSS"))
-setMethod(f="get.LOSS",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.LOSS() is depricated, please use loss() insted.\n")})
-
-setGeneric("get.VaR",function(this) standardGeneric("get.VaR"))
-setMethod(f="get.VaR",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.VaR() is depricated, please use VaR() insted.\n")})
-
-setGeneric("get.EC",function(this) standardGeneric("get.EC"))
-setMethod(f="get.EC",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.EC() is depricated, please use EC() insted.\n")})
-
-setGeneric("get.ES",function(this) standardGeneric("get.ES"))
-setMethod(f="get.ES",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.ES() is depricated, please use ES() insted.\n")})
-
-setGeneric("get.VaR.CONT",function(this) standardGeneric("get.VaR.CONT"))
-setMethod(f="get.VaR.CONT",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.VaR.CONT() is depricated, please use VaR.cont() insted.\n")})
-
-setGeneric("get.ES.CONT",function(this) standardGeneric("get.ES.CONT"))
-setMethod(f="get.ES.CONT",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.ES.CONT() is depricated, please use ES.cont() insted.\n")})
-
-setGeneric("get.ES.TAU.CONT",function(this) standardGeneric("get.ES.TAU.CONT"))
-setMethod(f="get.ES.TAU.CONT",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.ES.TAU.CONT() is depricated, please use ES.tau.cont() insted.\n")})
-
-setGeneric("get.EL.crp",function(this) standardGeneric("get.EL.crp"))
-setMethod(f="get.EL.crp",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.EL.crp() is depricated, please use EL.crp() insted.\n")})
-
-setGeneric("get.SD.crp",function(this) standardGeneric("get.SD.crp"))
-setMethod(f="get.SD.crp",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SD.crp() is depricated, please use SD.crp() insted.\n")})
-
-setGeneric("get.SELV",function(this) standardGeneric("get.SELV"))
-setMethod(f="get.SELV",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SELV() is depricated, please use VaR.pos() insted.\n")})
-
-setGeneric("get.ALPHA.crp",function(this) standardGeneric("get.ALPHA.crp"))
-setMethod(f="get.ALPHA.crp",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.ALPHA.crp() is depricated, please use alpha.crp() insted.\n")})
-
-setGeneric("get.SD.CONT",function(this) standardGeneric("get.SD.CONT"))
-setMethod(f="get.SD.CONT",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.SD.CONT() is depricated, please use SD.cont() insted.\n")})
-
-setGeneric("get.changes.crp.read",function(this) standardGeneric("get.changes.crp.read"))
-setMethod(f="get.changes.crp.read",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.read() is depricated, please use changes.read() insted.\n")})
-
-setGeneric("get.changes.crp.plausi",function(this) standardGeneric("get.changes.crp.plausi"))
-setMethod(f="get.changes.crp.plausi",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.plausi() is depricated, please use changes.plausi() insted.\n")
-})
-
-setGeneric("get.changes.crp.calc.portfolio.statistics",function(this) standardGeneric("get.changes.crp.calc.portfolio.statistics"))
-setMethod(f="get.changes.crp.calc.portfolio.statistics",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.calc.portfolio.statistics() is depricated, please use changes.calc.portfolio.statistics() insted.\n")
-})
-
-setGeneric("get.changes.crp.CSFP.loss",function(this) standardGeneric("get.changes.crp.CSFP.loss"))
-setMethod(f="get.changes.crp.CSFP.loss",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.CSFP.loss() is depricated, please use changes.loss() insted.\n")})
-
-setGeneric("get.changes.crp.measure",function(this) standardGeneric("get.changes.crp.measure"))
-setMethod(f="get.changes.crp.measure",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.measure() is depricated, please use changes.measure() insted.\n")})
-
-setGeneric("get.changes.crp.plot",function(this) standardGeneric("get.changes.crp.plot"))
-setMethod(f="get.changes.crp.plot",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.plot() is depricated, please use changes.plot() insted.\n")})
-
-setGeneric("get.changes.crp.CSFP.rc.vares",function(this) standardGeneric("get.changes.crp.CSFP.rc.vares"))
-setMethod(f="get.changes.crp.CSFP.rc.vares",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.CSFp.rc.vares() is depricated, please use changes.rc.vares() insted.\n")})
-
-setGeneric("get.changes.crp.CSFP.rc.sd",function(this) standardGeneric("get.changes.crp.CSFP.rc.sd"))
-setMethod(f="get.changes.crp.CSFP.rc.sd",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.CSFP.sd() is depricated, please use changes.rc.sd() insted.\n")})
-
-setGeneric("get.changes.crp.export",function(this) standardGeneric("get.changes.crp.export"))
-setMethod(f="get.changes.crp.export",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function get.changes.crp.export() is depricated, please use changes.export() insted.\n")})
-
-setGeneric("crp.write.summary",function(this) standardGeneric("crp.write.summary"))
-setMethod(f="crp.write.summary",signature=c("crp.CSFP"),definition=function(this){
-  cat("Function crp.write.summary() is depricated, please use write.summary() insted.\n")})
-
-
-
-
 

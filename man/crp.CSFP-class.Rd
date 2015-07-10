@@ -32,7 +32,7 @@ Objects can be created by calls of the form MyModel=\code{init(...)}.
     \bold{sector information:}\cr
     \item{\code{mu.k}:}{is a numeric vector with the average number of defaults per sector \code{mu.k=sum(W[,k+1]*PD.crp)}}
     \item{\code{loss.k}:}{is a numeric vector with the average loss per sector. It is defined by \cr \code{loss.K[k]=sum(W[,1+k]*PD*PL)}.}
-    \item{\code{sigma.k}:}{is a numeric vector with the sector standard deviation, calculated from \code{rating.SD} or \code{sec.var} according to \code{sec.var.est}.}
+    \item{\code{sigma_k}:}{is a numeric vector with the sector standard deviation, calculated from \code{rating.SD} or \code{sec.var} according to \code{sec.var.est}.}
 
      
   \bold{control parameters:}\cr
@@ -62,8 +62,8 @@ with: \code{MU.(k)=sum(W[,k+1]*PD)}}
     \item{\code{sec.var}:}{is a numeric vector with the sector variances from \code{sec.var.name}.}
     \item{\code{EL}:}{is a numeric value with the expected loss before discretization.}
     \item{\code{EL.crp}:}{is a numeric value with the expected loss after discretization, calculated from the PDF. Differences to \code{EL} are caused by \code{alpha.max} or \code{Niter.max} being to small.}
-    \item{\code{sigma.sqr.div}:}{is a numeric value with the diversifiable part of \code{SD.crp}. The value is already squared.}
-    \item{\code{sigma.sqr.syst}:}{is a numeric value with the systemic part of \code{SD}. The value is already squared.}
+    \item{\code{sigma_sqr_div}:}{is a numeric value with the diversifiable part of \code{SD.crp}. The value is already squared.}
+    \item{\code{sigma_sqr_syst}:}{is a numeric value with the systemic part of \code{SD}. The value is already squared.}
     \item{\code{SD}:}{is a numeric value with the portfolio standard deviation.}
     \item{\code{SD.crp}:}{is a numeric value with the portfolio standard deviation after discretization, calculated from the PDF. Differences to \code{SD} are caused by \code{loss.unit} being to large or \code{alpha.max} being to small.}
     \item{\code{VaR}:}{is a numeric vector containing the calculated value at risk for the given levels in \code{alpha}.}

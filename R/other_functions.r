@@ -33,7 +33,12 @@ init <- function(path.in="",path.out="",port.name="portfolio.csv",
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor,
-    Boston, MA  02110-1301, USA.\n")
+    Boston, MA  02110-1301, USA.
+                        
+    Please note that this package will not be updated anymore.
+    Instead we recommend to use the GCPM package which includes
+    the functionality of this package as well as more flexible
+    and more powerfull extensions.\n")
   missing.path.in=FALSE
   if(missing(path.in) && (nrow(portfolio)==0 || nrow(rating.scale)==0 || (nrow(sec.var)==0 && sec.var.est==5))){                                                                               
     cat("ERROR: You have to define an input path or pass all input data directly to 'init()'.\n")

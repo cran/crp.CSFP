@@ -1,7 +1,7 @@
-bfdaebdc132903dd50cca730e3777338 *DESCRIPTION
-a3006c17bfacc682bcd8a30fded5ec43 *NAMESPACE
-f5bb7250949149b4c2e3a90587bc4370 *R/crpCSFPclass.r
-f2d3189d9c3ead9ad348723db3d4cf2d *R/other_functions.r
+f35b8593bec0f50c13e2007f188f98a7 *DESCRIPTION
+0cefa3de7e92055b85fe8292fb883dea *NAMESPACE
+0ed7112a8526e37d466777133f853b53 *R/crpCSFPclass.r
+3ca28666d474e6fc4777e2b2d85e9cde *R/other_functions.r
 f2d7c9be789f802f3f896b7a67af1dd5 *data/pd_sector_var.csv
 99cda01c2f2d0cfdb6e0fa043838d4c0 *data/portfolio.csv
 087f6c56799b53ec85a48b87f076134a *data/rating_pd.csv
@@ -57,8 +57,8 @@ c64c00a3b781fe2d86343aed579cb15f *man/changes.loss-methods.Rd
 ba6138a3fddbd73e596fa8e256af87ea *man/changes.rc.sd-methods.Rd
 5948a399a510c37aa10903a58476d442 *man/changes.rc.vares-methods.Rd
 32a66d5406f41d4324b10219e3280760 *man/changes.read-methods.Rd
-82651daebf6a3eb6d465514680326c1d *man/crp.CSFP-class.Rd
-682689379c4cde8e6d4c178bfdc3df94 *man/crp.CSFP-package.Rd
+404285811c6293ce1461e69ab211f3f1 *man/crp.CSFP-class.Rd
+c92539b329c3341fb32583920e8447f1 *man/crp.CSFP-package.Rd
 6f7c8f0337bdfdfa1d63dba74799754c *man/crp.CSFP.Rd
 b8cf37af2c99a88a88a702d6cac8e5a3 *man/crp.round.Rd
 9ccf6a7da7077381a7a580e774b3573f *man/export-methods.Rd
@@ -119,8 +119,8 @@ e7b5a237be75ffc0aab40b1c9ad7ec19 *man/sec.var.est-methods.Rd
 04a9672f05e601db0c15b66a82ccf80e *man/sec.var_--methods.Rd
 d7933d1dbbba7ed68684942db817af36 *man/set.changes-methods.Rd
 5391c8e33ac0992be6bac3ea6be2c993 *man/show-methods.Rd
-0be2a94ffac5da70b13c7edd3a1b2b0f *man/sigma.k-methods.Rd
-d773cf7534a293e1321e9ba93ea68573 *man/sigma.sqr.div-methods.Rd
-16b6a1aded49c301f2ecfb1c45ab6287 *man/sigma.sqr.syst-methods.Rd
+0fb89d1c9ea670014aa97e32d79821f5 *man/sigma_k-methods.Rd
+ea5c843f644fd5e45e7c8e3237818547 *man/sigma_sqr_div-methods.Rd
+170b4ef14f8c055d532d2016252d435d *man/sigma_sqr_syst-methods.Rd
 7b7951f5135a1144ec2359a39ec7a3d9 *man/summary-methods.Rd
 bc0ef9afba36bc4502c44b2a3dff9b7d *man/write.summary-methods.Rd
