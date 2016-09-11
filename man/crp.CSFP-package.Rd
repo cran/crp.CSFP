@@ -13,8 +13,8 @@ Modelling credit risks based on the concept of "CreditRisk+", First Boston Finan
 \tabular{ll}{
 Package: \tab crp.CSFP\cr
 Type: \tab Package\cr
-Version: \tab 2.0.1\cr
-Date: \tab 2015-07-10\cr
+Version: \tab 2.0.2\cr
+Date: \tab 2016-09-09\cr
 License: \tab GPL-2?\cr
 Imports: \tab methods, MASS, utils, graphics\cr
 }
@@ -23,7 +23,7 @@ For first use have a look at \code{\link{crp.CSFP-class}}, \code{\link{crp.CSFP}
 \author{
 Kevin Jakob & Dr. Matthias Fischer
 
-Maintainer: Kevin Jakob <Kevin_Jakob@t-online.de>
+Maintainer: Kevin Jakob <Kevin.Jakob.Research@gmail.com>
 }
 \references{
 First Boston Financial Products, "CreditRisk+", 1997 \cr

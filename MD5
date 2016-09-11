@@ -1,4 +1,4 @@
-f35b8593bec0f50c13e2007f188f98a7 *DESCRIPTION
+558b11cd331c9d92b4f1ffbcf6e42e77 *DESCRIPTION
 0cefa3de7e92055b85fe8292fb883dea *NAMESPACE
 0ed7112a8526e37d466777133f853b53 *R/crpCSFPclass.r
 3ca28666d474e6fc4777e2b2d85e9cde *R/other_functions.r
@@ -58,7 +58,7 @@ ba6138a3fddbd73e596fa8e256af87ea *man/changes.rc.sd-methods.Rd
 5948a399a510c37aa10903a58476d442 *man/changes.rc.vares-methods.Rd
 32a66d5406f41d4324b10219e3280760 *man/changes.read-methods.Rd
 404285811c6293ce1461e69ab211f3f1 *man/crp.CSFP-class.Rd
-c92539b329c3341fb32583920e8447f1 *man/crp.CSFP-package.Rd
+4c8b8bbf8413335e8de4b47ecc7b69a0 *man/crp.CSFP-package.Rd
 6f7c8f0337bdfdfa1d63dba74799754c *man/crp.CSFP.Rd
 b8cf37af2c99a88a88a702d6cac8e5a3 *man/crp.round.Rd
 9ccf6a7da7077381a7a580e774b3573f *man/export-methods.Rd
